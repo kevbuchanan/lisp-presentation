@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Recursive Functions of Symbolic Expressions</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style type="text/css">
+      @import url(http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(http://fonts.googleapis.com/css?family=Droid+Serif);
+      @import url(http://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body {
+        font-family: 'Droid Serif';
+        font-size: 1.7em;
+      }
+      h1, h2, h3 {
+        font-family: 'Yanone Kaffeesatz';
+        font-weight: 400;
+        margin-bottom: 0;
+        margin-top: 0.5em;
+      }
+      .footnote {
+        position: absolute;
+        bottom: 3em;
+      }
+      li {
+        margin-bottom: 0.5em;
+        font-size: 1.5em;
+      }
+      li p { line-height: 1.25em; }
+      .red { color: #fa0000; }
+      .large { font-size: 2em; }
+      a, a > code {
+        color: rgb(249, 38, 114);
+        text-decoration: none;
+      }
+      code {
+        -moz-border-radius: 5px;
+        -web-border-radius: 5px;
+        background: #e7e8e2;
+        border-radius: 5px;
+      }
+      .remark-code, .remark-inline-code {
+        font-family: 'Ubuntu Mono';
+        background-color: #ffffff;
+      }
+      .remark-code-line-highlighted {
+        background-color: #373832;
+      }
+      .remark-code-line {
+        margin-bottom: 0.5em;
+      }
+      .pull-left {
+        float: left;
+        width: 47%;
+      }
+      .pull-right {
+        float: right;
+        width: 47%;
+      }
+      .pull-right ~ p {
+        clear: both;
+      }
+      #slideshow .slide .content code {
+        font-size: 0.8em;
+      }
+      #slideshow .slide .content pre code {
+        font-size: 0.9em;
+        padding: 15px;
+      }
+      /* Two-column layout */
+      .left-column {
+        color: #777;
+        width: 15%;
+        height: 92%;
+        float: left;
+      }
+      .left-column h2 {
+        font-size: 1.5em;
+      }
+      .left-column h2:last-of-type, .left-column h3:last-child {
+        color: #000;
+      }
+      .right-column {
+        width: 80%;
+        float: right;
+        padding-top: 1em;
+      }
+      .footnote {
+        font-size: 0.6em;
+      }
+      .footnote a {
+        color: black;
+      }
+      .remark-slide-content {
+        padding: 1em 2em;
+      }
+      .small {
+        font-size: 0.5em;
+      }
+      .small img {
+        height: 600px;
+        width: 600px;
+      }
+//*   .inverse {
+        background: #272822;
+        color: #777872;
+        text-shadow: 0 0 20px #333;
+      }
+      .inverse h1, .inverse h2 {
+        color: #f3f3f3;
+        line-height: 0.8em;
+      }
+*//
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+name: inverse
+layout: true
+class: center, middle, inverse
+
+---
+
+
+# Recursive Functions of Symbolic Expressions and Their Computation by Machine, Part I
+# by John McCarthy
+
+##  Presented by Kevin Buchanan
+
+---
+layout: false
+
+# Agenda
+
+1. , Part I - *Background*
+2. Recursive Functions - *The Concepts Behind LISP*
+3. of Symbolic Expressions - *Building the LISP Language*
+4. and Their Computation by Machine - *Implementing LISP*
+
+
+---
+# About Me
+
+- Software Developer at 8th Light
+- Recent computer science enthusiast
+- Like writing Clojure, Ruby, C, learning Erlang
+- @kevinbuch_
+
+---
+template: inverse
+
+# , Part I
+# *Background*
+
+---
+
+.left-column[
+## , Part I
+## John McCarthy
+]
+
+.right-column[
+* Princeton, Stanford, Dartmouth, MIT
+* "Artificial intelligence", 1955
+* LISP, 1958
+* Garbage collection, 1959
+* Time sharing, 1961
+]
+
+---
+
+.left-column[
+## , Part I
+## John McCarthy
+## Why This Paper?
+]
+
+.right-column[
+- LISP
+- Conditional control flow
+- Recursion (after IPL)
+- Garbage Collection
+- Lazy evaluation
+.footnote[[Link to the paper](https://github.com/papers-we-love/papers-we-love/raw/master/comp_sci_fundamentals_and_history/recursive-functions-of-symbolic-expressions-and-their-computation-by-machine-parti.pdf)]
+]
+
+---
+
+.left-column[
+## , Part I
+## John McCarthy
+## Why This Paper?
+## Why LISP?
+]
+
+.right-column[
+- Cond - precursor to if then else
+
+```lisp
+(cond (= x 1) a (= x 2) b (= x 3) c true d)
+```
+
+- Homoiconicity - code is just a list
+
+```lisp
+(eval (list + 1 2)) ;=> 3
+```
+
+- LISP is fun
+
+```lisp
+(defun inc-all (numbers)
+  (map (lamba (x) (+ x 1)) numbers))
+
+(inc-all (list 1 2 3 4 5)) ;=> '(2 3 4 5 6)
+```
+]
+
+---
+
+.left-column[
+  ## , Part I
+  ## John McCarthy
+  ## Why This Paper?
+  ## Why LISP?
+  ## Advice Taker
+]
+
+.right-column[
+- Programs with Common Sense .small[(http://www-formal.stanford.edu/jmc/mcc59.pdf)]
+- "Draw immediate conclusions from a list of premises"
+- Turing complete
+
+Premises:
+
+```lisp
+(at I desk)
+(at desk home)
+(walkable desk car)
+(at car home)
+(at home county)
+(at airport county)
+(drivable home airport)
+(want (at I airport))
+```
+
+Deductions:
+
+```lisp
+(can (go desk car walking))
+(can (go home airport driving))
+(do (go desk car walking))
+```
+]
+
+
+---
+
+.left-column[
+  ## , Part I
+  ## John McCarthy
+  ## Why This Paper?
+  ## Why LISP?
+  ## Advice Taker
+  ## Cons
+]
+
+.right-column[
+- Ordered pair
+- car and cdr
+
+car: first element, copy address part of register
+
+cdr: second element, copy decrement part of register
+
+Variations:
+
+```lisp
+(car 1 2 3) ; 1
+(cdr 1 2 3) ; (2 3)
+(caar ((1 2) (3 4)) ; (car (car ((1 2) (3 4)))) => 1
+(cadr (1 2 3) ; (car (cdr (1 2 3) => 2
+(cadar ((1 2 3) (4 5))) ; (car (cdr (car ((1 2 3) (4 5))))) => 2
+(caddr (1 2 3 4 5) ; (car (cdr (cdr (1 2 3 4 5)))) => 3
+(caddar ((1 2 3 4) (5 6)) ; (car (cdr (cdr (car ((1 2 3 4) (5 6)))))) => 3
+```
+]
+---
+template: inverse
+
+# Recursive Functions
+# *The Concepts Behind LISP*
+
+---
+
+.left-column[
+## Recursive Functions
+## Conditional Expressions
+]
+
+.right-column[
+- Propositional Expressions, T or F
+
+```c
+10 > 9
+4 < 1
+5 = 8
+```
+
+- ^, and
+- ∨, or
+- ¬ , not
+
+```c
+(2 < 1 → 4, (2 > 1 ^ 1 > 0) → 3, 2 > 1 → 2) = 3
+```
+
+```c
+((¬ 2 > 1) → 4, T → 3) = 3
+```
+
+```c
+(2 < 1 → 3, 4 < 1 → 4) = undefined
+```
+]
+
+---
+
+.left-column[
+## Recursive Functions
+## Conditional Expressions
+## Application
+]
+
+.right-column[
+```c
+|x| = (x < 0 → −x, T → x)
+```
+
+- Propositional connectives
+
+```c
+p ∧ q = (p → q, T → F)
+p ∨ q = (p → T, T → q)
+  ¬ p = (p → F, T → T)
+```
+
+- Recursive
+
+```c
+n! = (n = 0 → 1, T → n · (n − 1)!)
+```
+]
+
+---
+
+.left-column[
+## Recursive Functions
+## Conditional Expressions
+## Application
+## Function vs Form
+]
+
+.right-column[
+- Function
+
+```ruby
+f(3, 4)
+```
+
+- Form
+
+```ruby
+y * 2 + x
+```
+
+```ruby
+y * 2 + x(3, 4) # confusing
+
+(y * 2 + x)(3, 4) # 10 or 11 ?
+```
+
+- How to represent form as function?
+]
+
+---
+
+.left-column[
+## Recursive Functions
+## Conditional Expressions
+## Application
+## Function vs Form
+## Lambda Notation
+]
+
+.right-column[
+- Lambda notation (Church)
+
+Ordered list of function arguments to form variables:
+
+```c
+λ((x, y, z), y * 2 + x + z)
+
+λ((x, y, z), y * 2 + x + z)(3, 4, 5)
+
+λ((3, 4, 5), 4 * 2 + 3 + 5)
+
+4 * 2 + 3 + 5 = 16
+```
+]
+
+---
+
+.left-column[
+## Recursive Functions
+## Conditional Expressions
+## Application
+## Function vs Form
+## Lambda Notation
+## Label
+]
+
+.right-column[
+- How to reference an expression from within the expression?
+
+```c
+factorial = λ((x), ((x <= 1) → 1, T → x * factorial(x - 1)))
+```
+
+- label(a, E)
+
+Replaces occurences of a within E with E:
+
+```c
+label(factorial, λ((x), ((x <= 1) → 1, T → x * factorial(x - 1))))
+```
+]
+
+---
+template: inverse
+
+# of Symbolic Expressions
+# *Building the LISP Language*
+
+---
+
+.left-column[
+## of Symbolic Expressions
+## Symbolic-Expressions
+]
+
+.right-column[
+- Ordered pair notation
+- ( ) · and Atomic symbols
+- Atomic symbols are s-expressions
+
+```ruby
+AB
+(A · B)
+((AB · C) · D)
+```
+
+- NIL terminates lists
+
+```ruby
+(m1, m2, m3, m4)
+(m1 · (m2 · (m3 · (m4 · NIL))))
+```
+
+- Abbreviated version
+
+```ruby
+((AB, C), D)
+# same as
+((AB · (C · NIL)) · (D · NIL))
+```
+]
+---
+.left-column[
+## of Symbolic Expressions
+## Symbolic-Expressions
+## Meta-Expressions
+]
+
+.right-column[
+- S-functions
+
+```ruby
+equal[x]
+
+among[x; y]
+
+subst[x; y; z]
+```
+
+- Defined in conditional expressions
+
+```ruby
+append[x; y] = [null[x] → y; T → cons[car[x]; append[cdr[x]; y]]]
+```
+
+- S-functions applied to S-expressions create M-expressions
+
+```ruby
+car[x]
+
+car[cons[(A, B); x]]
+```
+]
+
+---
+.left-column[
+## of Symbolic Expressions
+## Symbolic-Expressions
+## Meta-Expressions
+## S-Functions
+]
+
+.right-column[
+atom:
+
+```ruby
+atom[X] = T
+atom[(X, A)] = F
+```
+
+eq:
+
+```ruby
+eq[X; X] = T
+eq[X; (X, A)] = undefined
+```
+
+cons:
+
+```ruby
+cons[A; (B, C)] = (A, B, C)
+```
+
+assoc:
+
+```ruby
+assoc[X; ((A, (B, C)), (D, (E, F)), (X, (Y, Z)))] = (Y, Z)
+```
+
+pair:
+
+```ruby
+pair[(A, B); (X, (Y, Z))] = ((A, X), (B, (Y, Z)))
+```
+]
+
+---
+.left-column[
+## of Symbolic Expressions
+## Symbolic-Expressions
+## Meta-Expressions
+## S-Functions
+## Recursion
+]
+
+.right-column[
+- ff[x], first atomic symbol in x
+
+```ruby
+ff[x] = [atom[x] → x; T → ff[car[x]]]
+ff[((A, B), C)] = A
+```
+
+```ruby
+ff[((A, B), C)]
+[atom[((A, B), C)] → ((A, B), C); T → ff[car[((A, B), C)]]]
+[F → ((A, B), C); T → ff[car[((A, B), C)]]]
+[T → ff[car[((A, B), C)]]]
+ff[(A, B)]
+[atom[(A, B)] → (A, B); T → ff[car[(A, B)]]]
+[F → (A, B); T → ff[car[(A, B)]]]
+[T → ff[car[(A, B)]]]
+ff[A]
+[atom[A] → A; T → ff[car[A]]]
+[T → A; T → ff[car[A]]]
+A
+```
+]
+
+---
+.left-column[
+## of Symbolic Expressions
+## Symbolic-Expressions
+## Meta-Expressions
+## S-Functions
+## Recursion
+## M-expr to S-expr
+]
+
+.right-column[
+
+- M-expressions to S-expressions
+
+```ruby
+cons[car[x]; cdr[x]] = (CONS, (CAR X), (CDR X))
+(CONS (CAR (A, B, C)), (CDR (A, B, C))) #=> (A, B, C)
+```
+
+- COND
+
+```ruby
+[p1 → e1; ... pn → en] = (COND, (p1* e1*), ... (pn* en*))
+```
+
+```ruby
+label[factorial;
+      λ[[x], [[x <= 1] → 1, T → [x * factorial[x - 1]]]]]
+
+(LABEL, FACTORIAL,
+  (LAMBDA, (X),
+    (COND,
+      ((=, X, 1), 1),
+      ((QUOTE, T), (*, X, (FACTORIAL, (-, X, 1)))))))
+```
+]
+
+---
+.left-column[
+## of Symbolic Expressions
+## Symbolic-Expressions
+## Meta-Expressions
+## S-Functions
+## Recursion
+## M-expr to S-expr
+## apply and eval
+]
+
+.right-column[
+- args = (arg1 .. argn)
+- apply[f; args] = f'[arg1 ... argn]
+
+```ruby
+apply[f; args] = eval[cons[f; appq[args]]; NIL]
+```
+
+- appq applies QUOTE to each argument
+- QUOTE prevents evaluation - symbol stands for itself
+]
+
+---
+.left-column[
+## of Symbolic Expressions
+## Symbolic-Expressions
+## Meta-Expressions
+## S-Functions
+## Recursion
+## M-expr to S-expr
+## apply and eval
+]
+
+.right-column[
+- expression e, list of ordered pairs a
+- Evaluates expression e in context a
+
+```ruby
+eval[e; a] = [
+  atom[e] → assoc[e; a];
+  atom[car[e]] → [
+    eq[car[e]; QUOTE] → cadr[e];
+    eq[car[e]; ATOM]  → atom[eval[cadr[e]; a]];
+    eq[car[e]; EQ]    → [eval[cadr[e]; a] = eval[caddr[e]; a]];
+    eq[car[e]; COND]  → evcon[cdr[e]; a];
+    eq[car[e]; CAR]   → car[eval[cadr[e]; a]];
+    eq[car[e]; CDR]   → cdr[eval[cadr[e]; a]];
+    eq[car[e]; CONS]  → cons[eval[cadr[e]; a]; eval[caddr[e]; a]];
+    T → eval[cons[assoc[car[e]; a]; evlis[cdr[e]; a]]; a]
+  ];
+  eq[caar[e]; LABEL] → eval[cons[caddar[e]; cdr[e]]; cons[list[cadar[e]; car[e]; a]]];
+  eq[caar[e]; LAMBDA] → eval[caddar[e]; append[pair[cadar[e]; evlis[cdr[e]; a]; a]]]
+]
+```
+]
+
+---
+.left-column[
+## of Symbolic Expressions
+## Symbolic-Expressions
+## Meta-Expressions
+## S-Functions
+## Recursion
+## M-expr to S-expr
+## apply and eval
+]
+
+.right-column[
+
+- evcon: eval a conditional expression
+
+```ruby
+evcon[c; a] = [eval[caar[c]; a] → eval[cadar[c]; a]; T → evcon[cdr[c]; a]]
+```
+
+- evlis: eval a list of expressions
+
+```ruby
+evlis[m; a] = [null[m] → NIL; T → cons[eval[car[m]; a]; evlis[cdr[m]; a]]]
+```
+]
+---
+.left-column[
+## of Symbolic Expressions
+## Symbolic-Expressions
+## Meta-Expressions
+## S-Functions
+## Recursion
+## M-expr to S-expr
+## apply and eval
+]
+
+.right-column[
+
+- As S-expression
+
+```lisp
+(LABEL, EVAL, (LAMBDA, (E A),
+  (COND,
+    ((ATOM, E), (ASSOC, E, A)),
+    ((ATOM, (CAR, E)),
+     (COND,
+       ((EQ, (CAR, E), QUOTE), (CADR, E)),
+       ((EQ, (CAR, E), ATOM),  (ATOM, (EVAL, (CADR, E), A))),
+       ((EQ, (CAR, E), EQ),    (EQ,   (EVAL, (CADR, E), A), (EVAL, (CADDR, E) A))),
+       ((EQ, (CAR, E), CAR),   (CAR,  (EVAL, (CADR, E), A))),
+       ((EQ, (CAR, E), CDR),   (CDR,  (EVAL, (CADR, E), A))),
+       ((EQ, (CAR, E), CONS),  (CONS, (EVAL, (CADR, E), A), (EVAL, (CADDR E), A))),
+       ((EQ, (CAR, E), COND),  (EVCON, (CDR, E) A)),
+       ((QUOTE, T), (EVAL, (CONS, (ASSOC, (CAR, E), A), (EVLIS, (CDR, E), A)), A)))),
+    ((EQ, (CAAR, E), LABEL), (EVAL, (CONS, (CADDAR, E), (CDR, E)),
+                                    (CONS, (LIST, (CADAR, E), (CAR, E)), A))),
+    ((EQ, (CAAR, E), LAMBDA), (EVAL, (CADDAR, E),
+                                     (APPEND, (PAIR, (CADAR, E), (EVLIS, (CDR, E), A)), A))))))
+```
+]
+
+---
+.left-column[
+## of Symbolic Expressions
+## Symbolic-Expressions
+## Meta-Expressions
+## S-Functions
+## Recursion
+## M-expr to S-expr
+## apply and eval
+]
+
+.right-column[
+```ruby
+apply[
+  (LABEL, FF, (LAMBDA, (X), (COND, ((ATOM, X), X), ((QUOTE, T), (FF, (CAR, X))))));
+  ((A, B))
+]
+
+eval[
+  ((LABEL, FF,
+    (LAMBDA, (X), (COND, ((ATOM, X), X), ((QUOTE, T), (FF, (CAR, X)))))), (QUOTE, (A, B)));
+  NIL
+]
+eval[
+  ((LAMDA, (X), (COND, ((ATOM, X), X), ((QUOTE, T), (FF, (CAR, X))))), (QUOTE, (A, B)));
+  ((FF, (LABEL, FF, (LAMBDA, (X), (COND, ((ATOM, X), X), ((QUOTE, T), (FF, (CAR, X))))))))
+]
+eval[
+  (COND, ((ATOM, X), X), ((QUOTE, T), (FF, (CAR, X))));
+  ((X, (QUOTE, (A, B))),
+   (FF, (LABEL, FF, (LAMBDA, (X), (COND, ((ATOM, X), X), ((QUOTE, T), (FF, (CAR, X))))))))
+]
+```
+]
+
+---
+.left-column[
+## of Symbolic Expressions
+## Symbolic-Expressions
+## Meta-Expressions
+## S-Functions
+## Recursion
+## M-expr to S-expr
+## apply and eval
+]
+
+.right-column[
+```ruby
+# evcon
+eval[
+  (FF, (CAR, X));
+  ((X, (QUOTE, (A, B))),
+   (FF, (LABEL, FF, (LAMBDA, (X), (COND, ((ATOM, X), X), ((QUOTE, T), (FF, (CAR, X))))))))
+]
+# evlis
+eval[
+  ((LABEL, FF, (LAMBDA, (X), (COND, ((ATOM, X), X), ((QUOTE, T), (FF, (CAR, X)))))), (QUOTE, A));
+  ((X, (QUOTE, (A, B))),
+   (FF, (LABEL, FF, (LAMBDA, (X), (COND, ((ATOM, X), X), ((QUOTE, T), (FF, (CAR, X))))))))
+]
+# repeat previous steps for label and lambda
+eval[
+  (COND, ((ATOM, X), X), ((QUOTE, T), (FF, (CAR, X))));
+  ((X, (QUOTE, A)),
+   (FF, (LABEL, FF, (LAMBDA, (X), (COND, ((ATOM, X), X), ((QUOTE, T), (FF, (CAR, X))))))))
+]
+```
+]
+---
+.left-column[
+## of Symbolic Expressions
+## Symbolic-Expressions
+## Meta-Expressions
+## S-Functions
+## Recursion
+## M-expr to S-expr
+## apply and eval
+]
+
+.right-column[
+```ruby
+eval[
+  X;
+  ((X, (QUOTE, A)),
+   (FF, (LABEL, FF, (LAMBDA, (X), (COND, ((ATOM, X), X), ((QUOTE, T), (FF, (CAR, X))))))))
+] = A
+```
+]
+---
+.left-column[
+## of Symbolic Expressions
+## Symbolic-Expressions
+## Meta-Expressions
+## S-Functions
+## Recursion
+## M-expr to S-expr
+## apply and eval
+## Function Arguments
+]
+
+.right-column[
+- Functions with function arguments
+
+```ruby
+maplist[x; f] = [null[x] → NIL; T → cons[f[x]; maplist[cdr[x]; f]]]
+```
+
+- Useful in constructing functions with variable arguments
+
+```lisp
+(TIMES, X, (PLUS, X, A), Y)
+
+(PLUS,
+  (TIMES, ONE, (PLUS, X, A), Y),
+  (TIMES, X, (PLUS, ONE, ZERO), Y),
+  (TIMES, X, (PLUS, X, A), ZERO))
+```
+]
+
+---
+template: inverse
+
+# and Their Computation by Machine
+# *Implementing LISP*
+
+---
+.left-column[
+## and Their Computation by Machine
+## Everything is a List
+]
+
+.right-column[
+- Collection of words as a linked list
+- address - location of value (car)
+- decrement - location of next word in list (cdr)
+
+```lisp
+(A, (B, C), D)
+(A · ((B · (C · NIL)) · (D · NIL)))
+```
+
+![img](figure2.png)
+
+]
+
+---
+.left-column[
+## and Their Computation by Machine
+## Everything is a List
+## Atomic Symbols
+]
+
+.right-column[
+- Address is constant represention atomic symbol
+- Decrement points to association list
+- Association list contains print name, value, s-expression, or location of function
+]
+
+---
+.left-column[
+## and Their Computation by Machine
+## Everything is a List
+## Atomic Symbols
+## Advantages
+]
+
+.right-column[
+- Storage doesn't need to be known in advance
+- Return free storage
+- Subexpressions are represented only once
+![img](figure1.png)
+- Cannot have cycles
+
+![img](figure3.png)
+]
+
+---
+.left-column[
+## and Their Computation by Machine
+## Everything is a List
+## Atomic Symbols
+## Advantages
+## Free Storage
+]
+
+.right-column[
+- Unused registers in one "free-storage list"
+- Needed space comes from head of free-storage list
+- Need space but no more free storage = "reclamation process"
+- Early garbage collection
+- Mark all registers reachable from base registers
+- Move all unmarked registers back to free-storage list
+]
+
+---
+.left-column[
+## and Their Computation by Machine
+## Everything is a List
+## Atomic Symbols
+## Advantages
+## Free Storage
+]
+
+.right-column[
+  .small[![](http://blockml.awwapps.com/example/example/images/gc.svg)]
+]
+---
+.left-column[
+## and Their Computation by Machine
+## Everything is a List
+## Atomic Symbols
+## Advantages
+## Free Storage
+## Representation of Programs
+]
+
+.right-column[
+- Pass S-expression location to function
+- Return answer as location of S-expression
+
+atom[x]: test address part at location of x
+
+eq[x; y]: test numeric equality of locations of x and y
+
+car[x]: return address part at location of x
+
+cdr[x]: return decrement part of location of x
+
+cons[x; y]: take free register, put x in address and y in decrement, return location
+
+]
+
+---
+.left-column[
+## and Their Computation by Machine
+## Everything is a List
+## Atomic Symbols
+## Advantages
+## Free Storage
+## Representation of Programs
+]
+
+.right-column[
+- COND - "only the p’s and e’s that are required are computed"
+- lazy evaluation
+- SAVE and UNSAVE to "public push-down list" (subst)
+- stack
+]
+
+---
+.left-column[
+## and Their Computation by Machine
+## Everything is a List
+## Atomic Symbols
+## Advantages
+## Free Storage
+## Representation of Programs
+## Implementation
+]
+
+.right-column[
+- Steve Russell
+- IBM 704 (car and cdr primitives)
+- Lisp interpreter using eval
+]
+
+---
+
+.left-column[
+## Why
+]
+
+.right-column[
+- apply - AI applications
+- eval - LISP interpreter
+- List structure - memory management/garbage collection
+- Higher order functions - Code can change code
+- Dynamic - REPL
+- Scheme, 1975
+- Common Lisp, 1984
+- Clojure, 2007
+]
+---
+template: inverse
+
+# Thanks. Questions?
+
+
+    </textarea>
+    <script src="http://gnab.github.io/remark/downloads/remark-latest.min.js" type="text/javascript">
+    <script type="text/javascript">
+      var hljs = remark.highlighter.engine;
+    </script>
+    <script src="http://gnab.github.io/remark/remark.language.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      var slideshow = remark.create({
+          ratio: '16:9',
+          highlightStyle: 'github',
+          highlightLanguage: 'remark'
+        }) ;
+    </script>
+  </body>
+</html>
