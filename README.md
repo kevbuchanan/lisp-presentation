@@ -1,0 +1,2 @@
+- [View the slides](http://htmlpreview.github.io/?https://github.com/kevinbuch/lisp-presentation/blob/master/slides.html)
+- [Download the paper](https://github.com/papers-we-love/papers-we-love/raw/master/comp_sci_fundamentals_and_history/recursive-functions-of-symbolic-expressions-and-their-computation-by-machine-parti.pdf)
